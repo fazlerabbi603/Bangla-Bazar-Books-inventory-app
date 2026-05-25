@@ -1,0 +1,6 @@
+{
+  "name": "Banglabazar Book Inventory",
+  "description": "A modern and responsive Inventory Management System tailored for book publishers and wholesalers in Banglabazar, Dhaka, Bangladesh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

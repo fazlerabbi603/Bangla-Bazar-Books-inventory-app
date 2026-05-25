@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Books Collection Rules
+    match /books/{bookId} {
+      allow read: if true; // Publicly readable for catalog/wholesalers
+      
+      allow create: if request.resource.data.name is string 
+                   && request.resource.data.name.size() > 0
+                   && request.resource.data.name.size() <= 200
+                   && request.resource.data.author is string
+                   && request.resource.data.publisher is string
+                   && request.resource.data.costPrice is number
+                   && request.resource.data.wholesalePrice is number
+                   && request.resource.data.retailPrice is number
+                   && request.resource.data.stock is number;
+                   
+      allow update: if request.resource.data.name is string 
+                   && request.resource.data.name.size() > 0
+                   && request.resource.data.name.size() <= 200
+                   && request.resource.data.stock is number;
+                   
+      allow delete: if true; // Allow delete for inventory management
+    }
+  }
+}

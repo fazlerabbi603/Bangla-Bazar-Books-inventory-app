@@ -1,0 +1,31 @@
+{
+  "entities": {
+    "Book": {
+      "title": "Book",
+      "description": "Represents a book in the publishing inventory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "description": "Name of the book" },
+        "author": { "type": "string", "description": "Author or Editor of the book" },
+        "publisher": { "type": "string", "description": "Publisher of the book" },
+        "costPrice": { "type": "number", "description": "Cost Price of the book in BDT" },
+        "wholesalePrice": { "type": "number", "description": "Wholesale Price in BDT" },
+        "retailPrice": { "type": "number", "description": "Retail Price in BDT" },
+        "stock": { "type": "number", "description": "Current quantity in stock" },
+        "supplierInfo": { "type": "string", "description": "Supplier contact or company details" },
+        "promotionalTag": { "type": "string", "description": "Professional marketing badge e.g. Best Seller, Limited Stock" },
+        "promoDescription": { "type": "string", "description": "A compelling, professional brand promotion pitch for the book" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "author", "publisher", "costPrice", "wholesalePrice", "retailPrice", "stock"]
+    }
+  },
+  "firestore": {
+    "books/{bookId}": {
+      "schema": "Book",
+      "description": "Inventory of published and wholesale books"
+    }
+  }
+}

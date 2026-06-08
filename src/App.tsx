@@ -50,6 +50,7 @@ export default function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedBookForDetail, setSelectedBookForDetail] = useState<Book | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isAddingDemo, setIsAddingDemo] = useState(false);
 
   // Load books in real-time
   useEffect(() => {
@@ -146,6 +147,147 @@ export default function App() {
     const confirmReset = window.confirm("আপনি কি স্টক তালিকা রিসেট করে বাংলাবাজারের প্রধান নমুনা বইগুলো পুনরায় লোড করতে চান?");
     if (confirmReset) {
       resetToDefaultStock();
+    }
+  };
+
+  // Add 10 Professional Demo books
+  const handleAddTenDemoProducts = async () => {
+    setIsAddingDemo(true);
+    setErrorMessage(null);
+    let count = 0;
+    try {
+      const demoBooks = [
+        {
+          name: "হিমু সমগ্র (রাজকীয় শতবর্ষ সংস্করণ)",
+          author: "হুমায়ূন আহমেদ",
+          publisher: "অনন্যা প্রকাশনী",
+          costPrice: 320,
+          wholesalePrice: 380,
+          retailPrice: 550,
+          stock: 150,
+          supplierInfo: "আলী বুক সাপ্লাই, বাংলাবাজার",
+          promotionalTag: "সর্বকালের বেস্টসেলার",
+          promoDescription: "হলুদ পাঞ্জাবি আর রিক্ত চরণে রহস্যময়তার অলৌকিক এক মায়াবী জগত! কথাশিল্পী হুমায়ূন আহমেদের তুমুল জনপ্রিয় চরিত্র 'হিমু'র সব রোমাঞ্চকর অভিযানের এক জমকালো রাজকীয় সংকলন। আপনার লাইব্রেরির গৌরব বাড়াতে আর এক মুহূর্ত অপেক্ষা না করে আজই পাইকারি মূল্যে বুকিং করুন!"
+        },
+        {
+          name: "লাল নীল தீপাবলী (বাঙলা সাহিত্যের ইতিহাস)",
+          author: "হুমায়ুন আজাদ",
+          publisher: "আগামী প্রকাশনী",
+          costPrice: 150,
+          wholesalePrice: 180,
+          retailPrice: 250,
+          stock: 80,
+          supplierInfo: "আগামী বুক ডিপো, বাংলাবাজার",
+          promotionalTag: "মননশীল সাহিত্যের চূড়ামণি",
+          promoDescription: "বাঙলা ভাষা ও সাহিত্যের সুদীর্ঘ ইতিহাস নিয়ে অনিন্দ্যসুন্দর জয়গান! কিশোর ও তরুণদের মুক্তবুদ্ধির অনন্য দিগন্ত উন্মোচনকারী বই 'লাল নীল தீপাবলী'। প্রতিটি পাতায় পাতায় শব্দ ক্যানভাসের এক অপরূপ শৈল্পিক মেলবন্ধন!"
+        },
+        {
+          name: "চিলেকোঠার সেপাই (কালজয়ী ক্লাসিক)",
+          author: "আখতারুজ্জামান ইলিয়াস",
+          publisher: "মাওলা ব্রাদার্স",
+          costPrice: 220,
+          wholesalePrice: 270,
+          retailPrice: 380,
+          stock: 45,
+          supplierInfo: "মাওলা ডিস্ট্রিবিউটরস, বাংলাবাজার",
+          promotionalTag: "ঊনসত্তরের ঐতিহাসিক মহাকাব্য",
+          promoDescription: "ঊনসত্তরের ঐতিহাসিক গণঅভ্যুত্থানের জীবন্ত চালচিত্র এবং অবহেলিত শোষিত মানুষের স্বপ্ন ও জীবনদ্বন্দ্ব। বাঙলা কথাসাহিত্যের এই অবিসংবাদিত কালজয়ী ক্ল্যাসিকটি আপনার বুকসেলফে আভিজাত্যের চূড়ান্ত আভা ছড়াবে।"
+        },
+        {
+          name: "জোছনা ও জননীর গল্প (মুক্তিযুদ্ধের কালজয়ী গাঁথা)",
+          author: "হুমায়ূন আহমেদ",
+          publisher: "অন্যপ্রকাশ",
+          costPrice: 380,
+          wholesalePrice: 450,
+          retailPrice: 600,
+          stock: 95,
+          supplierInfo: "অন্যপ্রকাশ বিতরণ সেল, ঢাকা",
+          promotionalTag: "মুক্তিযুদ্ধের অমর মহাকাব্য",
+          promoDescription: "রক্তে ভেজা বাংলার লাল-সবুজ পতাকার পেছনের অসীম ত্যাগ ও বীরত্বগাথার এক অনন্য প্রামাণ্য দলিল। বেদনাবিধুর ইতিহাস আর হৃদয়বিদারক ভালোবাসার অপূর্ব সংমিশ্রণে রচিত সর্বকালের শ্রেষ্ঠতম মুক্তিযুদ্ধের এই আখ্যানটি এখনই সংগ্রহে রাখুন!"
+        },
+        {
+          name: "দেয়াল (ঐতিহাসিক রাজনৈতিক থ্রিলার)",
+          author: "হুমায়ূন আহমেদ",
+          publisher: "অন্যপ্রকাশ",
+          costPrice: 250,
+          wholesalePrice: 300,
+          retailPrice: 420,
+          stock: 70,
+          supplierInfo: "অন্যপ্রকাশ বিতরণ সেল, ঢাকা",
+          promotionalTag: "প্রভাবশালী ইতিহাস গ্রন্থ",
+          promoDescription: "প্রখ্যাত কথাসাহিত্যিক হুমায়ূন আহমেদের সর্বশেষ অনবদ্য সৃষ্টি 'দেয়াল'। দেশভাগের পরবর্তী ঝঞ্ঝাবিক্ষুব্ধ রাজনীতি, গভীর অন্ধকার ষড়যন্ত্র এবং রোমাঞ্চকর বাস্তব ঐতিহাসিক ঘটনার এক অপূর্ব সাহিত্যিক মেলবন্ধন।"
+        },
+        {
+          name: "পদ্মা নদীর মাঝি (ধ্রুপদী সংস্করণ)",
+          author: "মানিক বন্দ্যোপাধ্যায়",
+          publisher: "ঐতিহ্য প্রকাশনী",
+          costPrice: 120,
+          wholesalePrice: 150,
+          retailPrice: 220,
+          stock: 120,
+          supplierInfo: "ঐতিহ্য ডিস্ট্রিবিউশন হাউজ",
+          promotionalTag: "ধ্রুপদী সাহিত্য সংস্করণ",
+          promoDescription: "ধীবর কুবের মালার জীবন ও পদ্মা নদীর বিশাল উত্তাল রূপের এক অবিস্মরণীয় রূপকথা। সাধারণ মানুষের বেঁচে থাকার কঠিন মহাকাব্যিক লড়াইয়ের চিরন্তন দৃশ্যপট। শাশ্বত ধ্রুপদী এই বইটি সরাসরি প্রকাশনী রেটে সংগ্রহ করুন।"
+        },
+        {
+          name: "প্যারাডক্সিক্যাল সাজিদ (যুগান্তকারী নতুন সংস্করণ)",
+          author: "আরিফ আজাদ",
+          publisher: "সমকালীন প্রকাশন",
+          costPrice: 190,
+          wholesalePrice: 240,
+          retailPrice: 350,
+          stock: 110,
+          supplierInfo: "সমকালীন বিক্রয় কেন্দ্র, বাংলাবাজার",
+          promotionalTag: "তরুণদের জনপ্রিয় হিট",
+          promoDescription: "সুনিপুণ চমৎকার যুক্তির আলোয় আধুনিক বিজ্ঞানের কষ্টিপাথরে বিশ্বাসের এক নিখুঁত জ্যোতিশ্চক্র! নতুন প্রজন্মের মননশীল চিন্তার রাজকীয় বিপ্লব ও আস্থার নির্ভরযোগ্য প্রতীক।"
+        },
+        {
+          name: "কাব্য ও জীবনের জলছবি (লাক্সারি কাব্য সংকলন)",
+          author: "শামসুর রাহমান",
+          publisher: "প্রথমা প্রকাশন",
+          costPrice: 180,
+          wholesalePrice: 220,
+          retailPrice: 300,
+          stock: 50,
+          supplierInfo: "প্রথমা পরিবেশক, ঢাকা",
+          promotionalTag: "বিশেষ উপহার সংস্করণ",
+          promoDescription: "আধুনিক বাঙালি জীবনের হর্ষ, রোমান্টিক বিষণ্ণতা ও মুক্তির কাব্যময় এক নিখুঁত দর্পণ। কবি শামসুর রাহমানের সমৃদ্ধ হৃদয়গ্রাহী কবিতাগুলোর চমৎকার সংকলন যা আপনার কফির মগ হাতে বিকেলের সেরা কালেকশন হতে বাধ্য!"
+        },
+        {
+          name: "কাকাবাবু সমগ্র (রোমাঞ্চকর রহস্য প্যাক)",
+          author: "সুনীল গঙ্গোপাধ্যায়",
+          publisher: "কাকলী প্রকাশনী",
+          costPrice: 290,
+          wholesalePrice: 350,
+          retailPrice: 480,
+          stock: 60,
+          supplierInfo: "কাকলী সোর্স ডিস্ট্রিবিউটর",
+          promotionalTag: "রহস্য ও অ্যাডভেঞ্চার",
+          promoDescription: "কাকাবাবু ও সন্তুর রোমাঞ্চকর অফুরন্ত অ্যাডভেঞ্চারের সেই চোখ ধাঁধানো চিরসবুজ জগত! রহস্য-শিহরনে উত্তেজনার পারদ বাড়াতে আজই আপনার লাইব্রেরি বা বুকশপের জন্য অত্যন্ত লাভজনক বাণিজ্যে স্টক করুন!"
+        },
+        {
+          name: "কবর (বায়ান্নর ভাষা আন্দোলনের অগ্নি-নাটক)",
+          author: "মুনীর চৌধুরী",
+          publisher: "কথাপ্রকাশ",
+          costPrice: 80,
+          wholesalePrice: 100,
+          retailPrice: 150,
+          stock: 130,
+          supplierInfo: "কথাপ্রকাশ এজেন্সি, বাংলাবাজার",
+          promotionalTag: "ঐতিহাসিক আন্দোলনের স্মারক",
+          promoDescription: "৫২-এর ঐতিহাসিক মাতৃভাষা আন্দোলনের জীবন্ত রক্তিম অগ্নিশিখা! স্বৈরাচারের অন্যায় ও নিপীড়নের বিরুদ্ধে বীরদের অবিস্মরণীয় ত্যাগের এক নান্দনিক নাট্যরূপ। প্রতিটি বাঙলাপ্রেমী বাঙালির সংগ্রহে রাখার মতো সর্বকালের অমূল্য সম্পদ।"
+        }
+      ];
+
+      for (const item of demoBooks) {
+        await addBook(item);
+      }
+      alert("সাফল্যের সাথে ১০টি প্রিমিয়াম ব্র্যান্ড কপির সাথে ডেমো প্রোডাক্ট আপনার স্টক ডাটাবেজে যুক্ত করা হয়েছে!");
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(`ডেমো বই যুক্ত করতে সমস্যা হয়েছে: ${err.message || err}`);
+    } finally {
+      setIsAddingDemo(false);
     }
   };
 
@@ -285,6 +427,16 @@ export default function App() {
                 তালিকা ইমপোর্ট (Excel/Google Sheet/Word)
               </button>
 
+              {/* Add 10 Premium Demo Books Button */}
+              <button
+                onClick={handleAddTenDemoProducts}
+                disabled={isAddingDemo}
+                className="px-4 py-2.5 border border-amber-250 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer max-md:flex-1 justify-center active:scale-95 disabled:opacity-55"
+              >
+                <Sparkles className="w-4 h-4 text-amber-600 animate-pulse" />
+                {isAddingDemo ? "১০টি ডেমো বই যোগ হচ্ছে..." : "১০টি ডেমো বই যোগ করুন"}
+              </button>
+
               {/* Add New Book Trigger button */}
               <button
                 onClick={handleOpenCreateModal}
@@ -358,23 +510,19 @@ export default function App() {
             </div>
           ) : (
             /* Main Spreadsheet Table */
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto text-right md:text-left">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 text-[11px] font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                    <th className="py-4 px-6">বইয়ের নাম ও বিবরণ</th>
-                    <th className="py-4 px-4">লেখক / সম্পাদক</th>
-                    <th className="py-4 px-4">প্রকাশক</th>
-                    <th className="py-4 px-4 text-right">ক্রয়মূল্য</th>
-                    <th className="py-4 px-4 text-right">পাইকারি মূল্য</th>
-                    <th className="py-4 px-4 text-right">খুচরা মূল্য</th>
-                    <th className="py-4 px-4 text-center">স্টক সংখ্যা</th>
-                    <th className="py-4 px-4">সরবরাহকারী</th>
-                    <th className="py-4 px-6 text-center">অপারেশন</th>
+                    <th className="py-4 px-6 text-center w-20">الرقم (ক্রমিক)</th>
+                    <th className="py-4 px-6">اسماء الكتب (বইয়ের নাম ও বিবরণ)</th>
+                    <th className="py-4 px-4">تأليف (লেখক / সংকলক)</th>
+                    <th className="py-4 px-4">تحقيق وتخريج (তাহকীক ও তাখরীজ)</th>
+                    <th className="py-4 px-6 text-center w-36">অপারেশন</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
-                  {filteredBooks.map((book) => {
+                  {filteredBooks.map((book, index) => {
                     const isLowStock = book.stock > 0 && book.stock <= 10;
                     const isOutOfStock = book.stock === 0;
 
@@ -384,84 +532,80 @@ export default function App() {
                         onClick={() => handleOpenDetailModal(book)}
                         className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
                       >
-                        {/* Book Title & Promo Badge */}
-                        <td className="py-4 px-6">
-                          <div className="flex flex-col gap-1.5 max-w-[200px]">
-                            <span className="font-bold text-slate-800 text-sm group-hover:text-emerald-700 transition-colors line-clamp-1">
-                              {book.name}
-                            </span>
-                            {/* Promotional badge displayed nicely */}
-                            {book.promotionalTag ? (
-                              <span className="self-start px-2 py-0.5 text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/55 rounded-full flex items-center gap-1 uppercase tracking-tight">
-                                <Tag className="w-2.5 h-2.5 text-emerald-600" />
-                                {book.promotionalTag}
+                        {/* Serial: الرقم */}
+                        <td className="py-4 px-6 text-center text-slate-500 font-mono font-bold text-[13px]">
+                          {index + 1}
+                        </td>
+
+                        {/* Book Title & Promo Badge: اسماء الكتب */}
+                        <td className="py-4 px-6 font-sans">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-13 bg-slate-100 rounded-lg border border-slate-200/60 overflow-hidden shrink-0 flex items-center justify-center relative shadow-xs">
+                              {book.coverImage ? (
+                                <img 
+                                  src={book.coverImage} 
+                                  alt={book.name} 
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <BookOpen className="w-4 h-4 text-slate-400" />
+                              )}
+                              <div className="absolute inset-y-0 left-0 w-1 bg-black/10 rounded-l-lg" />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="font-bold text-slate-800 text-[13px] group-hover:text-emerald-750 transition-colors line-clamp-1">
+                                {book.name}
                               </span>
-                            ) : (
-                              <span className="text-[10px] text-slate-400 line-clamp-1 italic">
-                                বিবরণী যুক্ত আছে
-                              </span>
-                            )}
+                              
+                              {/* Metadata Badge details under the title */}
+                              <div className="flex flex-wrap gap-1.5 mt-0.5 items-center">
+                                <span className="px-1.5 py-0.5 bg-slate-100 text-[9px] text-slate-600 rounded-md font-sans">
+                                  {book.publisher}
+                                </span>
+                                <span className="text-[10px] text-slate-300 font-mono">|</span>
+                                <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-md ${isOutOfStock ? 'text-rose-600 bg-rose-50 border border-rose-200' : isLowStock ? 'text-amber-700 bg-amber-50 border border-amber-200' : 'text-slate-600 bg-slate-50 border border-slate-150'}`}>
+                                  স্টক: {book.stock} পিস
+                                </span>
+                                {book.wholesalePrice > 0 && (
+                                  <>
+                                    <span className="text-[10px] text-slate-300 font-mono">|</span>
+                                    <span className="text-[9px] text-emerald-800 bg-emerald-50 px-1.5 py-0.5 border border-emerald-200 rounded-md font-semibold font-mono">
+                                      পাইকারি: ৳{book.wholesalePrice}
+                                    </span>
+                                  </>
+                                )}
+                                {book.promotionalTag && (
+                                  <>
+                                    <span className="text-[10px] text-slate-300 font-mono">|</span>
+                                    <span className="px-1.5 py-0.5 text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-150 rounded-md flex items-center gap-0.5">
+                                      <Tag className="w-2.5 h-2.5 text-amber-600" /> {book.promotionalTag}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </td>
 
-                        {/* Author */}
-                        <td className="py-4 px-4 text-slate-700 font-medium">
+                        {/* Author: تالیف */}
+                        <td className="py-4 px-4 text-slate-750 font-semibold font-sans text-[12px]">
                           {book.author}
                         </td>
 
-                        {/* Publisher */}
-                        <td className="py-4 px-4 text-slate-600">
-                          <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg font-medium text-[11px]">
-                            {book.publisher}
-                          </span>
-                        </td>
-
-                        {/* Cost Price */}
-                        <td className="py-4 px-4 text-right text-slate-700 font-mono">
-                          {formatBDT(book.costPrice)}
-                        </td>
-
-                        {/* Wholesale Price */}
-                        <td className="py-4 px-4 text-right text-emerald-700 font-mono font-bold text-sm bg-emerald-50/5 group-hover:bg-emerald-50/20">
-                          {formatBDT(book.wholesalePrice)}
-                        </td>
-
-                        {/* Retail Price */}
-                        <td className="py-4 px-4 text-right text-slate-600 font-mono">
-                          {formatBDT(book.retailPrice)}
-                        </td>
-
-                        {/* Stock Quantity */}
-                        <td className="py-4 px-4 text-center">
-                          <div className="inline-flex justify-center flex-col items-center">
-                            <span className={`font-mono font-bold text-sm ${isOutOfStock ? 'text-rose-600' : isLowStock ? 'text-amber-600 font-extrabold' : 'text-slate-800'}`}>
-                              {book.stock} পিস
-                            </span>
-                            {isOutOfStock ? (
-                              <span className="px-1.5 py-0.5 text-[9px] font-black bg-rose-50 text-rose-600 border border-rose-200 rounded-md mt-1 flex items-center gap-0.5">
-                                শেষ
-                              </span>
-                            ) : isLowStock ? (
-                              <span className="px-1.5 py-0.5 text-[9px] font-black bg-amber-50 text-amber-700 border border-amber-200 rounded-md mt-1 flex items-center gap-0.5">
-                                <AlertTriangle className="w-2.5 h-2.5" /> কম
-                              </span>
-                            ) : null}
-                          </div>
-                        </td>
-
-                        {/* Supplier address info */}
-                        <td className="py-4 px-4 text-slate-500 max-w-[150px] truncate" title={book.supplierInfo}>
-                          {book.supplierInfo || "—"}
+                        {/* Tahqeeq / Annotations: تحقيق وتخريج */}
+                        <td className="py-4 px-4 text-slate-600 font-medium font-sans text-[12px]">
+                          {book.tahqeeq || <span className="text-slate-300">—</span>}
                         </td>
 
                         {/* Row operation buttons */}
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-6 text-center">
                           <div className="flex items-center justify-center gap-1">
                             {/* View Detail Button */}
                             <button
                               onClick={(e) => handleOpenDetailModal(book, e)}
                               title="ব্র্যান্ড প্রমোশন ও পাইকারি স্লিপ"
-                              className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50/70 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-slate-500 hover:text-emerald-750 hover:bg-emerald-50/70 rounded-lg transition-colors cursor-pointer"
                             >
                               <Eye className="w-4 h-4" />
                             </button>

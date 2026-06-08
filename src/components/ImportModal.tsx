@@ -30,6 +30,32 @@ interface ImportModalProps {
 
 type ImportTab = 'excel' | 'paste' | 'word';
 
+// Dynamic script loader for Mammoth & PDFJS
+const loadCdnScript = (src: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      if ((existing as any).loaded) {
+        resolve();
+        return;
+      }
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', (e) => reject(e));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.onload = () => {
+      (script as any).loaded = true;
+      resolve();
+    };
+    script.onerror = (e) => reject(e);
+    document.head.appendChild(script);
+  });
+};
+
 export default function ImportModal({ onClose, onImportComplete, onAddBookDirect }: ImportModalProps) {
   // Tabs management
   const [activeTab, setActiveTab] = useState<ImportTab>('excel');
@@ -73,12 +99,84 @@ export default function ImportModal({ onClose, onImportComplete, onAddBookDirect
   const [autoGeneratePromo, setAutoGeneratePromo] = useState(true);
   const [promoTagDefault, setPromoTagDefault] = useState('নতুন সংস্করণ');
 
+  // Document file upload states (.docx, .pdf, .txt)
+  const [isProcessingDoc, setIsProcessingDoc] = useState(false);
+  const docFileInputRef = useRef<HTMLInputElement>(null);
+  const [docDragging, setDocDragging] = useState(false);
+
   // Helper: Reset parsing state
   const resetParsing = () => {
     setParsedHeaders([]);
     setParsedRows([]);
     setErrorMessage(null);
     setFileName('');
+  };
+
+  // Helper: process uploaded .docx, .pdf, or .txt file directly
+  const processDocFile = async (file: File) => {
+    setErrorMessage(null);
+    setIsProcessingDoc(true);
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    
+    try {
+      if (ext === 'txt') {
+        const text = await file.text();
+        setPastedText(text);
+        setFileName(file.name);
+      } else if (ext === 'docx') {
+        setFileName(file.name);
+        await loadCdnScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+        const arrayBuffer = await file.arrayBuffer();
+        
+        const mammothInstance = (window as any).mammoth;
+        if (mammothInstance) {
+          const result = await mammothInstance.extractRawText({ arrayBuffer });
+          const text = result.value;
+          if (text.trim()) {
+            setPastedText(text);
+          } else {
+            throw new Error('ওয়ার্ড ফাইল থেকে কোনো টেক্সট পাওয়া যায়নি!');
+          }
+        } else {
+          throw new Error('Mammoth লাইব্রেরি লোড হতে ব্যর্থ হয়েছে!');
+        }
+      } else if (ext === 'pdf') {
+        setFileName(file.name);
+        await loadCdnScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js');
+        const arrayBuffer = await file.arrayBuffer();
+        
+        const pdfjsLib = (window as any)['pdfjs-dist/build/pdf'];
+        if (!pdfjsLib) {
+          throw new Error('PDF.js লাইব্রেরি লোড হতে ব্যর্থ হয়েছে!');
+        }
+        
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        let fullText = '';
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map((item: any) => item.str).join(' ');
+          fullText += pageText + '\n';
+        }
+        
+        if (fullText.trim()) {
+          setPastedText(fullText);
+        } else {
+          throw new Error('পিডিএফ ফাইল থেকে কোনো টেক্সট পাওয়া যায়নি!');
+        }
+      } else {
+        throw new Error('শুধুমাত্র .docx, .pdf এবং .txt ফাইল সমর্থিত!');
+      }
+    } catch (err: any) {
+      console.error("Document read error: ", err);
+      setErrorMessage(`ফাইলটি পড়তে সমস্যা হয়েছে: ${err.message || err}`);
+    } finally {
+      setIsProcessingDoc(false);
+    }
   };
 
   // Helper: Try to auto-map columns based on common Bangla and English names
@@ -399,7 +497,7 @@ export default function ImportModal({ onClose, onImportComplete, onAddBookDirect
                   : 'text-slate-600 hover:bg-slate-200/50'
               }`}
             >
-              <FileText className="w-4 h-4" /> ওয়ার্ড ও টেক্সট ফাইল (.docx, .txt)
+              <FileText className="w-4 h-4" /> ওয়ার্ড ও পিডিএফ ফাইল (.docx, .pdf, .txt)
             </button>
           </div>
 
@@ -496,30 +594,94 @@ export default function ImportModal({ onClose, onImportComplete, onAddBookDirect
 
             {/* TAB CONTENT 3: WORD OR PLAIN TEXT FILES LINE BY LINE */}
             {activeTab === 'word' && parsedRows.length === 0 && (
-              <div className="space-y-4">
-                <div className="bg-emerald-50/50 border border-emerald-250 p-4 rounded-2xl flex gap-3 text-xs text-emerald-800 leading-relaxed">
+              <div className="space-y-4 animate-fadeIn">
+                <div className="bg-emerald-50/50 border border-emerald-250 p-4 rounded-2xl flex gap-3 text-xs text-emerald-850 leading-relaxed">
                   <Info className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
                   <div>
-                    <strong className="font-bold block mb-1">যেকোনো টেক্সট বা ওয়ার্ড তালিকা ইমপোর্ট করার নিয়ম:</strong>
-                    আপনার ওয়ার্ড ডকুমেন্ট (.docx) অথবা নোটপ্যাড (.txt) ফাইলে থাকা তালিকা থেকে পুরো অংশ সিলেক্ট করে কপি করুন এবং নিচে পেস্ট করুন। বইটি কমা (,), খাড়া দাগ (|) অথবা ড্যাশ (-) দিয়ে আলাদা লাইনে থাকতে পারে। যেমন:<br />
-                    <span className="font-mono bg-white px-2 py-0.5 rounded border border-emerald-250 block mt-1.5 opacity-90">
+                    <strong className="font-bold block mb-1">যেকোনো ওয়ার্ড, পিডিএফ বা টেক্সট তালিকা ইমপোর্ট করার নিয়ম:</strong>
+                    আপনি সরাসরি একটি ওয়ার্ড ডকুমেন্ট (.docx) অথবা পিডিএফ ফাইল (.pdf) অথবা সাধারণ টেক্সট ফাইল (.txt) সরাসরি এখানে আপলোড করতে পারেন। ডাটাবেজে যুক্ত হতে প্রতি লাইনে একটি করে বই রাখুন। যেমন:
+                    <span className="font-mono bg-white px-2 py-1.5 rounded border border-emerald-250 block mt-2 opacity-90 font-semibold">
                       হিমু সমগ্র - হুমায়ূন আহমেদ - অনন্যা প্রকাশনী - ৩২০ টাকা - ৫০ কপি
                     </span>
                   </div>
                 </div>
 
+                {/* Real-time drag and drop file upload block for DOCX and PDF and TXT */}
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); setDocDragging(true); }}
+                  onDragLeave={() => setDocDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDocDragging(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) {
+                      processDocFile(file);
+                    }
+                  }}
+                  onClick={() => docFileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${
+                    docDragging 
+                      ? 'border-emerald-650 bg-emerald-50/30' 
+                      : 'border-slate-200 bg-slate-50/30 hover:bg-slate-50 hover:border-slate-350'
+                  }`}
+                >
+                  <input 
+                    type="file"
+                    ref={docFileInputRef}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        processDocFile(file);
+                      }
+                    }}
+                    accept=".docx, .pdf, .txt"
+                    className="hidden"
+                  />
+                  <div className="space-y-3">
+                    {isProcessingDoc ? (
+                      <div className="flex flex-col items-center justify-center space-y-3 py-2">
+                        <svg className="animate-spin h-7 w-7 text-emerald-700" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span className="text-xs font-bold text-slate-650 animate-pulse">ডকুমেন্ট ফাইল ডিকোড করে লেখাগুলো নিষ্কাশন করা হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন।</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="p-3 bg-emerald-50 text-emerald-800 rounded-full w-fit mx-auto shadow-inner">
+                          <Upload className="w-6 h-6 text-emerald-700" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-700 font-sans">
+                            {fileName ? `নির্বাচিত ফাইল: ${fileName}` : 'সরাসরি .docx (Word) অথবা .pdf (PDF) ফাইল এখানে ড্র্যাগ করে ছেড়ে দিন'}
+                          </p>
+                          <p className="text-slate-400 text-[10px] mt-1 leading-normal">
+                            অথবা আপনার সিস্টেম থেকে ফাইল সিলেক্ট করতে এখানে ক্লিক করুন (খুব দ্রুত লেখা বের করে আনবে)
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-[1px] bg-slate-150 flex-1"></div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest font-sans">অথবা নিচে সরাসরি এডিট বা পেস্ট করুন</span>
+                  <div className="h-[1px] bg-slate-150 flex-1"></div>
+                </div>
+
                 <textarea
-                  rows={8}
+                  rows={6}
                   value={pastedText}
                   onChange={(e) => setPastedText(e.target.value)}
-                  placeholder="আপনার র ফাইল বা ওয়ার্ড তালিকা এখানে পেস্ট করুন..."
-                  className="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 font-mono text-xs text-slate-700"
+                  placeholder="আপনার র ফাইল, পিডিএফ বা ওয়ার্ড ফাইলটি উপরের বক্সে সিলেক্ট করলে তার ভেতরের বাংলা টেক্সট স্বয়ংক্রিয়ভাবে এখানে চলে আসবে। আপনি চাইলে এখানে নিজ হাতেও টাইপ করতে পারবেন..."
+                  className="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 font-mono text-xs text-slate-700 bg-slate-50/20"
                 />
 
                 <div className="flex justify-end">
                   <button
                     onClick={handlePasteProcess}
-                    disabled={!pastedText.trim()}
+                    disabled={!pastedText.trim() || isProcessingDoc}
                     className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer flex items-center gap-1.5"
                   >
                     লিস্ট এনালাইজার সক্রিয় করুন <ChevronRight className="w-4 h-4" />

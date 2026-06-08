@@ -21,12 +21,12 @@ import { Book } from './types';
 // ==========================================
 // আপনি সহজেই আপনার Firebase ফায়ারবেস কনফিগারেশনটি এখানে পেস্ট করতে পারেন:
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDZl-7A7ftr6_XH8ZGoR6AATxi4BdCA7YM",
+  authDomain: "banglabazar-inventory.firebaseapp.com",
+  projectId: "banglabazar-inventory",
+  storageBucket: "banglabazar-inventory.firebasestorage.app",
+  messagingSenderId: "50287417719",
+  appId: "1:50287417719:web:2851eea10fc35108d5a972"
 };
 
 // Check if credentials are configured (are not default template strings)
@@ -47,89 +47,10 @@ if (isFirebaseConfigured) {
     console.error("Firebase initialization failed:", error);
   }
 } else {
-  console.log("Using High-Fidelity LocalStorage Fallback. (Configure your Firebase keys to connect to cloud Firestore).");
+  console.log("Firebase credentials not configured, working in offline/local storage mode.");
 }
 
-// ==========================================
-// initial mock data with Professional Bangla Promoted Description and Tags
-// ==========================================
-const INITIAL_BOOKS: Book[] = [
-  {
-    id: "sample-book-1",
-    name: "হিমু সমগ্র",
-    author: "হুমায়ূন আহমেদ",
-    publisher: "অনন্যা প্রকাশনী",
-    costPrice: 280,
-    wholesalePrice: 320,
-    retailPrice: 450,
-    stock: 120,
-    supplierInfo: "আলী বুক সাপ্লাই, বাংলাবাজার",
-    promotionalTag: "সর্বকালের বেস্টসেলার",
-    promoDescription: "হুমায়ূন আহমেদের অমর সৃষ্টি হিমুর সব রোমাঞ্চকর অভিযানের এক জমকালো সংকলন! পাঠকনন্দিত পীত বসনধারী যুবকের মায়াবী জগতে ডুব দিতে এবং আপনার লাইব্রেরির মর্যাদা বাড়াতে আর অপেক্ষা না করে আজই সংগ্রহ করুন আপনার পরম কাঙ্খিত কপিটি!",
-    createdAt: new Date("2026-01-10").toISOString(),
-    updatedAt: new Date("2026-05-25").toISOString()
-  },
-  {
-    id: "sample-book-2",
-    name: "লাল নীল தீপাবলী",
-    author: "হুমায়ুন আজাদ",
-    publisher: "আগামী প্রকাশনী",
-    costPrice: 130,
-    wholesalePrice: 160,
-    retailPrice: 220,
-    stock: 45,
-    supplierInfo: "আগামী ডিপো, ঢাকা",
-    promotionalTag: "অনন্য প্রকাশনা",
-    promoDescription: "বাঙলা সাহিত্যের বিস্ময়কর ইতিহাস ও নান্দনিক বিশ্লেষণ। কিশোর ও তরুণ সাহিত্যপ্রেমীদের মুক্তচিন্তার ধারক এই অসামান্য মাস্টারপিসটি বাঙালির মনন গঠনের এক অপরিহার্য চাবিকাঠি!",
-    createdAt: new Date("2026-02-15").toISOString(),
-    updatedAt: new Date("2026-05-25").toISOString()
-  },
-  {
-    id: "sample-book-3",
-    name: "চিলেকোঠার সেপাই",
-    author: "আখতারুজ্জামান ইলিয়াস",
-    publisher: "মাওলা ব্রাদার্স",
-    costPrice: 210,
-    wholesalePrice: 260,
-    retailPrice: 350,
-    stock: 8,
-    supplierInfo: "মাওলা স্টক ডিস্ট্রিবিউটরস",
-    promotionalTag: "স্টক সীমিত",
-    promoDescription: "ঊনসত্তরের গণঅভ্যুত্থানের প্রেক্ষাপটে রচিত বাঙলা কথাসাহিত্যের এক অবিসংবাদিত কালজয়ী ক্ল্যাসিক। অবহেলিত ও শোষিত মানুষের জীবনযাত্রার মহাকাব্যিক রূপায়ণ—চিন্তাশীল গম্ভীর পাঠকের অন্যতম পছন্দের শ্রেষ্ঠ বই!",
-    createdAt: new Date("2026-03-05").toISOString(),
-    updatedAt: new Date("2026-05-25").toISOString()
-  },
-  {
-    id: "sample-book-4",
-    name: "কাব্য ও জীবনের জলছবি",
-    author: "শামসুর রাহমান",
-    publisher: "প্রথমা প্রকাশন",
-    costPrice: 190,
-    wholesalePrice: 230,
-    retailPrice: 300,
-    stock: 65,
-    supplierInfo: "প্রথমা ডিস্ট্রিবিউশন হাউজ",
-    promotionalTag: "বিশেষ ছাড় (১৫%)",
-    promoDescription: "আধুনিক বাঙালি জীবনের সুখ-দুঃখ ও আশা-আকাঙ্ক্ষার কাব্যময় প্রতিচ্ছবি। প্রিয় কবি শামসুর রাহমানের সমৃদ্ধ কবিতাগুচ্ছের এই বিশেষ সংকলনটি আপনার হৃদয়কে ছুঁয়ে যাবেই। আজই হ্রাসকৃত পাইকারি মূল্যে বুক করুন!",
-    createdAt: new Date("2026-03-20").toISOString(),
-    updatedAt: new Date("2026-05-25").toISOString()
-  },
-  {
-    id: "sample-book-5",
-    name: "কাকাবাবু সমগ্র",
-    author: "সুনীল গঙ্গোপাধ্যায়",
-    publisher: "কাকলী প্রকাশনী",
-    costPrice: 310,
-    wholesalePrice: 370,
-    retailPrice: 500,
-    stock: 35,
-    supplierInfo: "কাকলী ডিস্ট্রিবিউশন",
-    promotionalTag: "জনপ্রিয় সংস্করণ",
-    promoDescription: "কাকাবাবু আর সন্তুর শ্বাসরুদ্ধকর এডভেঞ্চার ও রহস্যের এক শিহরণ জাগানো ভুবন! ছোট-বড় সবার রোমাঞ্চপ্রিয় মন জয় করার অনন্য ক্ষমতা রাখে এই প্রফেশনাল রাজকীয় কালেকশনটি। এখনই পাইকারি রেটে স্টক করুন!",
-    createdAt: new Date("2026-04-01").toISOString(),
-    updatedAt: new Date("2026-05-25").toISOString()
-  }
-];
+export const INITIAL_BOOKS: Book[] = [];
 
 // LocalStorage helpers to simulate Firebase onSnapshot
 const LOCAL_STORAGE_KEY = "banglabazar_books_inventory";

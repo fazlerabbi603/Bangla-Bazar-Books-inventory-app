@@ -68,21 +68,33 @@ export default function BookDetailModal({ book, onClose }: BookDetailModalProps)
 
               {/* Virtual Premium Book Spine Representation */}
               <div className="my-8 flex-1 flex flex-col justify-center">
-                <div className="relative bg-emerald-800 rounded-lg p-5 border-l-8 border-yellow-400 border-t border-r border-b border-emerald-700/50 shadow-2xl rotate-1 hover:rotate-0 transition-transform duration-300 max-w-[180px] mx-auto w-full aspect-[3/4] flex flex-col justify-between">
-                  <div>
-                    <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-300 block mb-1">Banglabazar</span>
-                    <h3 className="font-extrabold text-white text-base leading-tight font-sans text-center mt-3 border-b border-emerald-700/40 pb-2">
-                      {book.name}
-                    </h3>
-                    <p className="text-[10px] text-emerald-200 text-center italic mt-2">
-                      {book.author}
-                    </p>
+                {book.coverImage ? (
+                  <div className="relative group max-w-[180px] mx-auto w-full aspect-[3/4]">
+                    <img 
+                      src={book.coverImage} 
+                      alt={book.name} 
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover rounded-xl shadow-2xl border border-slate-750/30 group-hover:scale-105 transition-transform duration-350"
+                    />
+                    <div className="absolute inset-y-0 left-0 w-2.5 bg-black/35 rounded-l-xl backdrop-blur-[0.5px] shadow-inner" />
                   </div>
-                  <div className="flex justify-between items-center text-[9px] text-emerald-300 uppercase mt-auto">
-                    <span>{book.publisher.replace(" প্রকাশনী", "").replace(" প্রকাশন", "")}</span>
-                    <span className="font-mono">৳{book.retailPrice}</span>
+                ) : (
+                  <div className="relative bg-emerald-800 rounded-lg p-5 border-l-8 border-yellow-400 border-t border-r border-b border-emerald-700/50 shadow-2xl rotate-1 hover:rotate-0 transition-transform duration-300 max-w-[180px] mx-auto w-full aspect-[3/4] flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-300 block mb-1">Banglabazar</span>
+                      <h3 className="font-extrabold text-white text-base leading-tight font-sans text-center mt-3 border-b border-emerald-700/40 pb-2">
+                        {book.name}
+                      </h3>
+                      <p className="text-[10px] text-emerald-200 text-center italic mt-2">
+                        {book.author}
+                      </p>
+                    </div>
+                    <div className="flex justify-between items-center text-[9px] text-emerald-300 uppercase mt-auto">
+                      <span>{book.publisher.replace(" প্রকাশনী", "").replace(" প্রকাশন", "")}</span>
+                      <span className="font-mono">৳{book.retailPrice}</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Publisher Footer branding */}
@@ -104,6 +116,11 @@ export default function BookDetailModal({ book, onClose }: BookDetailModalProps)
                   <p className="text-sm font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
                     <User className="w-4 h-4" /> {book.author}
                   </p>
+                  {book.tahqeeq && (
+                    <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 font-sans font-semibold">
+                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">تحقيق وتخريج</span> {book.tahqeeq}
+                    </p>
+                  )}
                 </div>
                 <button 
                   onClick={onClose}

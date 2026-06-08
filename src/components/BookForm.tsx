@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
-import { X, Sparkles, AlertCircle, HelpCircle, Tag, Check } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Sparkles, AlertCircle, HelpCircle, Tag, Check, Upload, Image as ImageIcon, Trash2, Camera } from 'lucide-react';
 import { Book } from '../types';
 
 interface BookFormProps {
@@ -46,6 +46,7 @@ export default function BookForm({ bookToEdit, onClose, onSave }: BookFormProps)
   // Form State
   const [name, setName] = useState('');
   const [author, setAuthor] = useState('');
+  const [tahqeeq, setTahqeeq] = useState('');
   const [publisher, setPublisher] = useState('');
   const [customPublisher, setCustomPublisher] = useState('');
   const [isCustomPublisher, setIsCustomPublisher] = useState(false);
@@ -58,6 +59,11 @@ export default function BookForm({ bookToEdit, onClose, onSave }: BookFormProps)
   
   const [promotionalTag, setPromotionalTag] = useState('');
   const [promoDescription, setPromoDescription] = useState('');
+  const [coverImage, setCoverImage] = useState('');
+
+  // Image Upload helper attributes
+  const [isDragImageOver, setIsDragImageOver] = useState(false);
+  const fileImgInputRef = useRef<HTMLInputElement>(null);
 
   // Error/Process State
   const [formError, setFormError] = useState('');
@@ -68,6 +74,7 @@ export default function BookForm({ bookToEdit, onClose, onSave }: BookFormProps)
     if (bookToEdit) {
       setName(bookToEdit.name);
       setAuthor(bookToEdit.author);
+      setTahqeeq(bookToEdit.tahqeeq || '');
       
       const foundPublisher = POPULAR_PUBLISHERS.find(p => p === bookToEdit.publisher);
       if (foundPublisher) {
@@ -86,10 +93,12 @@ export default function BookForm({ bookToEdit, onClose, onSave }: BookFormProps)
       setSupplierInfo(bookToEdit.supplierInfo || '');
       setPromotionalTag(bookToEdit.promotionalTag || '');
       setPromoDescription(bookToEdit.promoDescription || '');
+      setCoverImage(bookToEdit.coverImage || '');
     } else {
       // Default initial states
       setName('');
       setAuthor('');
+      setTahqeeq('');
       setPublisher(POPULAR_PUBLISHERS[0]);
       setIsCustomPublisher(false);
       setCostPrice('');
@@ -99,6 +108,7 @@ export default function BookForm({ bookToEdit, onClose, onSave }: BookFormProps)
       setSupplierInfo('');
       setPromotionalTag(PROMO_TAGS[0]);
       setPromoDescription('');
+      setCoverImage('');
     }
   }, [bookToEdit]);
 
@@ -140,6 +150,86 @@ export default function BookForm({ bookToEdit, onClose, onSave }: BookFormProps)
     setPromoDescription(templates[randomIndex]);
   };
 
+  // Canvas image compression & sizing handler (optimized for cloud db / Firestore storage limits)
+  const handleImageFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setFormError('অনুগ্রহ করে শুধুমাত্র একটি ভ্যালিড ছবি নির্বাচন করুন (যেমন: PNG, JPG, JPEG)।');
+      return;
+    }
+    setFormError('');
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // High quality but tiny footprint: Max dimension of 320px
+        const maxDim = 320;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          // Compress to JPEG format with 0.75 ratio to keep file size under 15KB
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          setCoverImage(dataUrl);
+        } else {
+          setCoverImage(e.target?.result as string);
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Drag and Drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragImageOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragImageOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragImageOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleImageFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileSelectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleImageFile(e.target.files[0]);
+    }
+  };
+
+  const triggerFileSelect = () => {
+    fileImgInputRef.current?.click();
+  };
+
+  const handleRemoveImage = () => {
+    setCoverImage('');
+    if (fileImgInputRef.current) {
+      fileImgInputRef.current.value = '';
+    }
+  };
+
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +252,7 @@ export default function BookForm({ bookToEdit, onClose, onSave }: BookFormProps)
       const bookPayload: Omit<Book, 'id' | 'createdAt' | 'updatedAt'> = {
         name: name.trim(),
         author: author.trim(),
+        tahqeeq: tahqeeq ? tahqeeq.trim() : undefined,
         publisher: selectedPublisherName,
         costPrice: Number(costPrice),
         wholesalePrice: Number(wholesalePrice),
@@ -169,7 +260,8 @@ export default function BookForm({ bookToEdit, onClose, onSave }: BookFormProps)
         stock: Number(stock),
         supplierInfo: supplierInfo.trim(),
         promotionalTag: promotionalTag ? promotionalTag.trim() : undefined,
-        promoDescription: promoDescription ? promoDescription.trim() : undefined
+        promoDescription: promoDescription ? promoDescription.trim() : undefined,
+        coverImage: coverImage ? coverImage.trim() : undefined
       };
 
       await onSave(bookPayload);
@@ -239,32 +331,128 @@ export default function BookForm({ bookToEdit, onClose, onSave }: BookFormProps)
                 />
               </div>
 
-              {/* Author */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">লেখক / সম্পাদক <span className="text-rose-500">*</span></label>
-                <input 
-                  type="text"
-                  placeholder="যেমন: হুমায়ূন আহমেদ"
-                  value={author}
-                  onChange={(e) => setAuthor(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all font-sans text-sm text-slate-800"
-                  required
-                />
+              {/* Author & Publisher in Left Column */}
+              <div className="col-span-1 flex flex-col gap-4">
+                {/* Author */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">लेखক / সংকলক (تأليف) <span className="text-rose-500">*</span></label>
+                  <input 
+                    type="text"
+                    placeholder="যেমন: الشيخ محمد عوامة / আল্লামা ইবনে কুতাইবাহ"
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all font-sans text-sm text-slate-800"
+                    required
+                  />
+                </div>
+
+                {/* Tahqeeq */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">তাহকীক ও তাখরীজ (تحقيق وتخريج)</label>
+                  <input 
+                    type="text"
+                    placeholder="যেমন: السيد ارشد المدنى / إدارة التحقيق العلمي"
+                    value={tahqeeq}
+                    onChange={(e) => setTahqeeq(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all font-sans text-sm text-slate-800"
+                  />
+                </div>
+
+                {/* Publisher Selection */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">প্রকাশনী <span className="text-rose-500">*</span></label>
+                  <select
+                    value={isCustomPublisher ? 'others' : publisher}
+                    onChange={handlePublisherChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 bg-white transition-all font-sans text-sm text-slate-800"
+                  >
+                    {POPULAR_PUBLISHERS.map((pub) => (
+                      <option key={pub} value={pub}>{pub}</option>
+                    ))}
+                    <option value="others">অন্যান্য প্রকাশনী (ম্যানুয়াল লিখুন)</option>
+                  </select>
+                </div>
               </div>
 
-              {/* Publisher Selection */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">প্রকাশনী <span className="text-rose-500">*</span></label>
-                <select
-                  value={isCustomPublisher ? 'others' : publisher}
-                  onChange={handlePublisherChange}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 bg-white transition-all font-sans text-sm text-slate-800"
+              {/* Cover Image Upload (Drag-and-Drop and manual select) in Right Column */}
+              <div className="col-span-1">
+                <label className="block text-xs font-semibold text-slate-500 mb-1 flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5 text-emerald-600" />
+                  বইয়ের কভার ছবি (গ্যালারি থেকে সরাসরি আপলোড)
+                </label>
+                
+                {/* Hidden File Input */}
+                <input 
+                  type="file"
+                  ref={fileImgInputRef}
+                  onChange={handleFileSelectChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+
+                <div 
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={coverImage ? undefined : triggerFileSelect}
+                  className={`relative border-2 border-dashed rounded-2xl h-[124px] flex flex-col items-center justify-center transition-all overflow-hidden ${
+                    coverImage 
+                      ? 'border-emerald-500 bg-emerald-50/5' 
+                      : isDragImageOver 
+                        ? 'border-emerald-600 bg-emerald-50/30' 
+                        : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 cursor-pointer'
+                  }`}
                 >
-                  {POPULAR_PUBLISHERS.map((pub) => (
-                    <option key={pub} value={pub}>{pub}</option>
-                  ))}
-                  <option value="others">অন্যান্য প্রকাশনী (ম্যানুয়াল লিখুন)</option>
-                </select>
+                  {coverImage ? (
+                    <div className="absolute inset-0 flex items-center justify-between p-3 gap-3">
+                      <div className="relative h-full aspect-[3/4] bg-slate-900 border border-slate-700/30 rounded-lg overflow-hidden shrink-0 shadow-lg">
+                        <img 
+                          src={coverImage} 
+                          alt="Cover preview" 
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-y-0 left-0 w-1 bg-black/20" />
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center text-left">
+                        <p className="text-[11px] font-bold text-emerald-800 flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5 shrink-0" /> কভার সফলভাবে যুক্ত হয়েছে!
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          মেঘে আপলোড হয়ে সরাসরি ফায়ারস্টোরে সংরক্ষিত হবে।
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            type="button"
+                            onClick={triggerFileSelect}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold rounded-lg border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Camera className="w-3 h-3" /> পরিবর্তন
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-bold rounded-lg border border-rose-150 transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" /> মুছুন
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center pointer-events-none">
+                      <div className="p-2 bg-white rounded-full w-fit mx-auto border border-slate-100 shadow-xs mb-1">
+                        <Upload className="w-4 h-4 text-slate-400" />
+                      </div>
+                      <p className="text-[11px] font-bold text-slate-700 leading-normal">
+                        ফাইল ড্র্যাগ করে ছাড়ুন অথবা <span className="text-emerald-700 underline">ব্রাউজ করুন</span>
+                      </p>
+                      <p className="text-[9px] text-slate-400 mt-0.5">
+                        PNG, JPG বা JPEG ফরম্যাট (সর্বোচ্চ ৩ এমবি)
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Custom Publisher Name (Conditional) */}
